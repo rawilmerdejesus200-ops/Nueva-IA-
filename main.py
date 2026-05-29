@@ -72,3 +72,7 @@ async def generar_imagen(user_request: UserPrompt):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+from mangum import Mangum
+
+# Asegúrate de que tu aplicación se define como 'app' (ejemplo: app = FastAPI())
+handler = Mangum(app)
