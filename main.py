@@ -44,26 +44,21 @@ async def orquestador_debate(user_request: UserPrompt):
     user_prompt = user_request.prompt
     
     async with httpx.AsyncClient() as client:
-        # 1. Llamadas paralelas
-        gemini_task = call_gemini(user_prompt, client)
-        claude_task = call_claude(user_prompt, client)
-        grok_task = call_grok(user_prompt, client)
+        # Solo llamamos a Gemini
+        resp_gemini = await call_gemini(user_prompt, client)
         
-        resp_gemini, resp_claude, resp_grok = await asyncio.gather(gemini_task, claude_task, grok_task)
+        # Como solo tenemos a Gemini, el debate es solo lo que dice Gemini
+        debates = f"Gemini: {resp_gemini}"
+        prompt_final = f"Analiza la siguiente respuesta buscando puntos fuertes: {debates}"
         
-        # 2. Análisis del Árbitro
-        debates = f"Gemini: {resp_gemini}\nClaude: {resp_claude}\nGrok: {resp_grok}"
-        prompt_final = f"Analiza estos debates buscando inconsistencias o errores: \n{debates}\nGenera la mejor conclusión final."
-        
-        # 3. Respuesta final consolidada
+        # El árbitro analiza lo que dijo Gemini
         respuesta_final = await call_arbitrator(prompt_final, client)
         
         return {
             "gemini_raw": resp_gemini,
-            "claude_raw": resp_claude,
-            "grok_raw": resp_grok,
             "conclusion_arbitro": respuesta_final
         }
+        
 
 @app.post("/generar-imagen")
 async def generar_imagen(user_request: UserPrompt):
